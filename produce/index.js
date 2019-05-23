@@ -1,6 +1,6 @@
 const Amqp = require('../amqp');
 const util = require('util');
-const opts = {contentType: 'application/json'};
+const defaultOpts = {contentType: 'application/json'};
 
 module.exports = function(...params) {
     let parent = Amqp(...params);
@@ -17,8 +17,10 @@ module.exports = function(...params) {
     }
 
     ProduceAmqpPort.prototype.exec = function(params, $meta) {
-        let [exchange, routingKey] = $meta.method.split('.').slice(1, 3);
+        let [exchange, ...routingKeyArray] = $meta.method.split('.').slice(1);
+        const routingKey = routingKeyArray.join('.');
         let config = this.config.exchange[exchange];
+        const opts = { ...defaultOpts, ...params.options }; 
 
         if (this.channel === null) {
             return;
